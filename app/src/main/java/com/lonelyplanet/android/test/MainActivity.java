@@ -24,7 +24,7 @@ public class MainActivity extends ListActivity {
     String DESCRIPTION = "description";
 
     /** List of places */
-    ArrayList<Place> places = new ArrayList<Place>();
+    ArrayList<Place> mPlaces = new ArrayList<Place>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class MainActivity extends ListActivity {
 
         @Override
         protected void onPostExecute(ArrayList<Place> list) {
-            places = list;
+            mPlaces = list;
             fillList();
             insertPlaces(list);
         }
@@ -66,7 +66,7 @@ public class MainActivity extends ListActivity {
      * This method fills the list with the places
      */
     private void fillList() {
-        PlacesAdapter adapter = new PlacesAdapter(this, R.layout.place_row, places);
+        PlacesAdapter adapter = new PlacesAdapter(this, R.layout.place_row, mPlaces);
         setListAdapter(adapter);
     }
 
@@ -93,30 +93,30 @@ public class MainActivity extends ListActivity {
     private class PlacesAdapter extends ArrayAdapter<Place> {
 
         Context mContext;
-        int resource;
-        ArrayList<Place> places;
+        int mResource;
+        ArrayList<Place> mPlaces;
 
         public PlacesAdapter(Context context, int resource, ArrayList<Place> places) {
             super(context, resource);
             this.mContext = context;
-            this.resource = resource;
-            this.places = places;
+            this.mResource = resource;
+            this.mPlaces = places;
         }
 
         @Override
         public int getCount() {
-            return places.size();
+            return mPlaces.size();
         }
 
         @Override
         public Place getItem(int position) {
-            return places.get(position);
+            return mPlaces.get(position);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             Place place = getItem(position);
-            View v = LayoutInflater.from(mContext).inflate(resource, null);
+            View v = LayoutInflater.from(mContext).inflate(mResource, null);
 
             ((TextView) v.findViewById(R.id.tv_title)).setText(place.getTitle());
             ((TextView) v.findViewById(R.id.tv_description)).setText(place.getDescription());

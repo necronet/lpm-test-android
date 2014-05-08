@@ -19,17 +19,19 @@ import java.util.ArrayList;
 /** This Activity shows a list of places */
 public class MainActivity extends ListActivity {
 
+    private PlacesAdapter mAdapter ;
+
     /** Literals of database fields */
     String _ID = "_id";
     String TITLE = "title";
     String DESCRIPTION = "description";
 
-    /** List of places */
-    ArrayList<Place> mPlaces = new ArrayList<Place>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAdapter = new PlacesAdapter(this, R.layout.place_row, new ArrayList<Place>());
+        setListAdapter(mAdapter);
 
         new LoadPlaces().execute();
     }
@@ -56,20 +58,12 @@ public class MainActivity extends ListActivity {
 
         @Override
         protected void onPostExecute(ArrayList<Place> list) {
-            mPlaces = list;
-            fillList();
+            mAdapter.setItems(list);
             insertPlaces(list);
         }
 
     }
 
-    /**
-     * This method fills the list with the places
-     */
-    private void fillList() {
-        PlacesAdapter adapter = new PlacesAdapter(this, R.layout.place_row, mPlaces);
-        setListAdapter(adapter);
-    }
 
     /**
      * This method saves places in the database, WE DON'T NEED TO UPDATE THEM
@@ -101,6 +95,12 @@ public class MainActivity extends ListActivity {
             this.mContext = context;
             this.mResource = resource;
             this.mPlaces = places;
+        }
+
+        public PlacesAdapter setItems(ArrayList<Place> places) {
+            mPlaces = places;
+            notifyDataSetChanged();
+            return this;
         }
 
         @Override

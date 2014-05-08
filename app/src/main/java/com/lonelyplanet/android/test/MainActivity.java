@@ -122,15 +122,25 @@ public class MainActivity extends ListActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             Place place = getItem(position);
 
-
+            ViewHolder holder = null;
             if (convertView == null) {
                 convertView = LayoutInflater.from(mContext).inflate(mResource, parent, false);
+                holder = new ViewHolder();
+                holder.textTitle = ((TextView) convertView.findViewById(R.id.tv_title));
+                holder.textDescription = (TextView) convertView.findViewById(R.id.tv_description);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder)convertView.getTag();
             }
 
-            ((TextView) convertView.findViewById(R.id.tv_title)).setText(place.getTitle());
-            ((TextView) convertView.findViewById(R.id.tv_description)).setText(place.getDescription());
+            holder.textTitle.setText(place.getTitle());
+            holder.textDescription.setText(place.getDescription());
 
             return convertView;
+        }
+
+        class ViewHolder {
+            TextView textTitle, textDescription;
         }
     }
 

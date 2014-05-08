@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -90,14 +91,13 @@ public class MainActivity extends ListActivity {
     /**
      * The adapter to fill the list of places
      */
-    private class PlacesAdapter extends ArrayAdapter<Place> {
+    class PlacesAdapter extends BaseAdapter {
 
         Context mContext;
         int mResource;
         ArrayList<Place> mPlaces;
 
         public PlacesAdapter(Context context, int resource, ArrayList<Place> places) {
-            super(context, resource);
             this.mContext = context;
             this.mResource = resource;
             this.mPlaces = places;
@@ -114,14 +114,23 @@ public class MainActivity extends ListActivity {
         }
 
         @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             Place place = getItem(position);
-            View v = LayoutInflater.from(mContext).inflate(mResource, null);
 
-            ((TextView) v.findViewById(R.id.tv_title)).setText(place.getTitle());
-            ((TextView) v.findViewById(R.id.tv_description)).setText(place.getDescription());
 
-            return v;
+            if (convertView == null) {
+                convertView = LayoutInflater.from(mContext).inflate(mResource, parent, false);
+            }
+
+            ((TextView) convertView.findViewById(R.id.tv_title)).setText(place.getTitle());
+            ((TextView) convertView.findViewById(R.id.tv_description)).setText(place.getDescription());
+
+            return convertView;
         }
     }
 

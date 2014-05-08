@@ -3,12 +3,15 @@ package com.lonelyplanet.android.test;
 import android.app.ListActivity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +50,48 @@ public class MainActivity extends ListActivity {
      * AsyncTask that loads 30 places in the ArrayList places
      */
     private class LoadPlaces extends AsyncTask<Void, Void, ArrayList<Place>> {
+
+        DatabaseHelper mOpenHelper = new DatabaseHelper(MainActivity.this);
+        ArrayList<Place> list ;
+        Handler handler = new Handler();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            //will try to get the object from the cache if they exist before
+            //making an expensive call to have something to show
+
+            Thread worker = new Thread() {
+
+                public void run() {
+
+                    SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+
+                    Cursor cursor = db.query("places",null,null,null,null,null,null);
+                    Log.d("DEBUG","run in thread " + cursor.getCount());
+                    if(cursor.getCount() > 0) {
+                        Log.d("DEBUG","Data been loaded");
+                        list = new ArrayList<Place>();
+                        while (cursor.moveToNext()) {
+                            Place p = new Place(cursor.getInt(cursor.getColumnIndex("_id")),
+                                    cursor.getString(cursor.getColumnIndex("title")),
+                                    cursor.getString(cursor.getColumnIndex("description")));
+                            list.add(p);
+                        }
+                        Log.d("DEBUG","Data posted " + list);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.setItems(list);
+                            }
+                        });
+
+                    }
+                }
+            };
+            worker.start();
+        }
+
         @Override
         protected ArrayList<Place> doInBackground(Void... voids) {
             /** This code just simulates a call to an API that returns 30 places in 5 seconds */
@@ -55,7 +100,6 @@ public class MainActivity extends ListActivity {
             } catch (InterruptedException e) {
             }
 
-            DatabaseHelper mOpenHelper = new DatabaseHelper(MainActivity.this);
             SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
             ArrayList<Place> list = new ArrayList<Place>();
@@ -73,7 +117,7 @@ public class MainActivity extends ListActivity {
 
                 list.add(p);
             }
-
+            db.setTransactionSuccessful();
             db.endTransaction();
 
             return list;

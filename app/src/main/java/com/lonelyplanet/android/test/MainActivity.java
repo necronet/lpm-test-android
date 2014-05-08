@@ -48,10 +48,26 @@ public class MainActivity extends ListActivity {
             } catch (InterruptedException e) {
             }
 
+            DatabaseHelper mOpenHelper = new DatabaseHelper(MainActivity.this);
+            SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
             ArrayList<Place> list = new ArrayList<Place>();
+            ContentValues values = new ContentValues();
+
+            db.beginTransaction();
             for (int i = 0; i < 30; i++) {
-                list.add(new Place(i, "Place " + i, "Description " + i));
+                Place p = new Place(i, "Place " + i, "Description " + i);
+
+                values.put(_ID, p.getId());
+                values.put(TITLE, p.getTitle());
+                values.put(DESCRIPTION, p.getDescription());
+                if (db != null)
+                    db.insertWithOnConflict("Places", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+                list.add(p);
             }
+
+            db.endTransaction();
 
             return list;
         }
@@ -59,28 +75,11 @@ public class MainActivity extends ListActivity {
         @Override
         protected void onPostExecute(ArrayList<Place> list) {
             mAdapter.setItems(list);
-            insertPlaces(list);
+
         }
 
     }
 
-
-    /**
-     * This method saves places in the database, WE DON'T NEED TO UPDATE THEM
-     */
-    private void insertPlaces(ArrayList<Place> placesToSave) {
-        DatabaseHelper mOpenHelper = new DatabaseHelper(this);
-        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        if (db != null) {
-            for (Place p : placesToSave) {
-                ContentValues values = new ContentValues();
-                values.put(_ID, p.getId());
-                values.put(TITLE, p.getTitle());
-                values.put(DESCRIPTION, p.getDescription());
-                db.insert("Places", null, values);
-            }
-        }
-    }
 
     /**
      * The adapter to fill the list of places

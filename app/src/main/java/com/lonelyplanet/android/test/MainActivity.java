@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,10 +32,15 @@ public class MainActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mAdapter = new PlacesAdapter(this, R.layout.place_row, new ArrayList<Place>());
-        setListAdapter(mAdapter);
+        if (savedInstanceState != null) {
+            ArrayList<Place> places = savedInstanceState.getParcelableArrayList("places");
+            mAdapter = new PlacesAdapter(this, R.layout.place_row, places);
+        } else {
+            mAdapter = new PlacesAdapter(this, R.layout.place_row, new ArrayList<Place>());
+            new LoadPlaces().execute();
+        }
 
-        new LoadPlaces().execute();
+        setListAdapter(mAdapter);
     }
 
     /**
@@ -80,6 +87,11 @@ public class MainActivity extends ListActivity {
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("places", mAdapter.getItems());
+        super.onSaveInstanceState(outState);
+    }
 
     /**
      * The adapter to fill the list of places
@@ -110,6 +122,10 @@ public class MainActivity extends ListActivity {
         @Override
         public Place getItem(int position) {
             return mPlaces.get(position);
+        }
+
+        public ArrayList<Place> getItems() {
+            return mPlaces;
         }
 
         @Override
@@ -146,7 +162,7 @@ public class MainActivity extends ListActivity {
     /**
      * Entity Place with an Id, a Title and a Description
      */
-    class Place {
+    static class Place implements Parcelable {
         private long id;
         private String title;
         private String description;
@@ -183,6 +199,35 @@ public class MainActivity extends ListActivity {
         public void setDescription(String description) {
             this.description = description;
         }
+
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeLong(this.id);
+            dest.writeString(this.title);
+            dest.writeString(this.description);
+        }
+
+        private Place(Parcel in) {
+            this.id = in.readLong();
+            this.title = in.readString();
+            this.description = in.readString();
+        }
+
+        public static Parcelable.Creator<Place> CREATOR = new Parcelable.Creator<Place>() {
+            public Place createFromParcel(Parcel source) {
+                return new Place(source);
+            }
+
+            public Place[] newArray(int size) {
+                return new Place[size];
+            }
+        };
     }
 
     /** Database helper */
